@@ -1,65 +1,62 @@
-# Organizacion de ramas - Manager Library
+# Organización de ramas — Manager Library
 
-Este documento define como se organizaran las ramas de trabajo para desarrollar Manager Library siguiendo SDD. La fuente de verdad sigue siendo el spec de `test-manager-library-3145555-docs`; este repositorio documenta la estrategia de entrega y evidencias.
+## Fuentes y orden de revisión
 
-## Principios de trabajo
+Leer primero `spec-.net/spec.md` y `spec-python/spec.md` de `../test-manager-library-3145555-docs/`: alcance, HU, CA, reglas y RNF. Después revisar los `plan.md` y las `constitution.md` para organizar el código y aplicar SOLID. Completar con architecture, data-model, api-contract, tasks y ADR de la misma variante.
 
-- La rama `dev` es la base de integracion, pero no se trabaja ni se sube evidencia directamente desde ella.
-- Cada cambio nace en una rama hija con una nomenclatura clara.
-- Los commits deben escribirse en ingles.
-- Cada rama debe dejar evidencia verificable de la historia o tarea que resuelve.
-- No se inventan reglas de negocio: se implementa lo que aparece en `constitution.md`, `spec.md`, `api-contract.md`, `data-model.md` y `tasks.md`.
-- `infra` solo levanta servicios vacios; el esquema de base de datos pertenece a las migraciones del backend.
+Los planes describen .NET 8/C# 12, ASP.NET Core, EF Core 8, BCrypt factor 12, xUnit; o Python 3.12, FastAPI, SQLAlchemy 2/Alembic, Argon2id, pytest. Ambas variantes usan PostgreSQL 16 y JWT HS256 de 8 horas. La traducción anterior a Laravel no está respaldada por estos planes. El esqueleto PHP existente requiere alineación; no se elige ni mezcla aquí una variante.
 
-## Nomenclatura
+## Ramas hijas
 
-| Repositorio | Tipo de rama | Ejemplo |
+Formato en minúsculas: `hu-<número de dos dígitos>-<rama base>`. Ejemplo: `hu-01-dev`, hija de dev; desde qa: `hu-01-qa`. El número identifica una HU del spec, no una tarea técnica.
+
+Las ramas locales HU-01-health-check de api, app, infra, page y tool- se renombraron a `hu-01-dev`. Esto no acredita implementación de HU-01. La rama documental feature/branch-organization no representa una HU.
+
+```bash
+git switch dev
+git switch -c hu-02-dev
+```
+
+## Historias reales
+
+| HU | Rama desde dev | Alcance del spec |
 |---|---|---|
-| `test-manager-library-3145555-docs-` | `feature/<scope>` | `feature/branch-organization` |
-| `test-manager-library-3145555-api` | `HU-XX-<short-name>` | `HU-01-health-check` |
-| `test-manager-library-3145555-app` | `HU-XX-<short-name>` | `HU-01-health-check` |
-| `test-manager-library-3145555-infra` | `HU-XX-<short-name>` | `HU-01-health-check` |
-| `test-manager-library-3145555-page` | `HU-XX-<short-name>` | `HU-01-health-check` |
-| `test-manager-library-3145555-tool-` | `HU-XX-<short-name>` | `HU-01-health-check` |
+| HU-01 | hu-01-dev | Iniciar sesión, token 8 horas, 401 genérico, protección y autorización |
+| HU-02 | hu-02-dev | Alta de bibliotecarios por admin, usuario normalizado/único, rechazo de admin por API |
+| HU-03 | hu-03-dev | Libros, ISBN único activo, ejemplares, portada JPG/PNG hasta 2 MB, baja lógica |
+| HU-04 | hu-04-dev | Buscar libros activos, filtros, orden, paginación hasta 50 y total |
+| HU-05 | hu-05-dev | Crear/consultar socios, documento único, sin eliminación |
+| HU-06 | hu-06-dev | Préstamos de 1 a 3 líneas, máximo 3 sin devolver, 14 días, atomicidad, valores congelados |
+| HU-07 | hu-07-dev | Devolución por línea, sin doble incremento, cierre calculado |
+| HU-08 | hu-08-dev | Consultar/listar préstamos, filtros, estado calculado |
+| HU-09 | hu-09-dev | Vencidos ordenados por retraso, acceso admin/librarian |
+| HU-10 | hu-10-dev | Reporte por libro/categoría congelada, rango válido, solo admin |
 
-## Primer corte de trabajo
+Todos los CA del spec son obligatorios; la tabla es un resumen. Health check es T-01, infraestructura T-20, sembrador T-21, frontend T-22 y página pública T-23. Ninguna de esas tareas se convierte en una HU nueva.
 
-| Repositorio | Rama | Objetivo | Evidencia esperada |
-|---|---|---|---|
-| `docs-` | `feature/branch-organization` | Documentar estrategia de ramas y traduccion del spec a Laravel/React | Este archivo versionado |
-| `infra` | `HU-01-health-check` | Preparar contenedores base y PostgreSQL vacio | `docker compose` sin `CREATE TABLE` |
-| `api` | `HU-01-health-check` | Preparar Laravel y exponer `/health` | `GET /health` responde `{ "status": "ok" }` |
-| `app` | `HU-01-health-check` | Reservar la integracion inicial del frontend con salud de API | README con alcance de HU-01 |
-| `page` | `HU-01-health-check` | Reservar evidencia inicial del sitio publico | README con alcance de HU-01 |
-| `tool-` | `HU-01-health-check` | Reservar utilidades futuras que usaran la API | README con alcance de HU-01 |
+## Requisitos no funcionales
 
-## Orden recomendado por SDD
-
-1. Leer y respetar `constitution.md`, `spec.md` y `plan.md`.
-2. Crear el arranque basico: backend Laravel, configuracion y ruta publica `/health`.
-3. Crear infraestructura con PostgreSQL vacio, volumen persistente y red compartida.
-4. Crear migraciones en el backend para las seis tablas y las cinco categorias iniciales.
-5. Implementar dominio y casos de uso por HU.
-6. Conectar adaptadores reales: PostgreSQL, autenticacion, portadas y API HTTP.
-7. Construir React y el sembrador usando el contrato HTTP.
-
-## Traduccion del plan tecnico
-
-| Spec de referencia | Entrega real |
+| RNF | Evidencia requerida |
 |---|---|
-| Python/FastAPI o .NET/ASP.NET | PHP con Laravel |
-| Alembic o EF Core migrations | Migraciones de Laravel |
-| pytest o xUnit | PHPUnit o Pest |
-| Puerto `Clock` | Servicio/contrato de reloj en la capa de aplicacion |
-| Puerto `PasswordHasher` | Adaptador sobre `Hash` de Laravel |
-| JWT HS256 | Autenticacion por token JWT con vigencia de 8 horas |
-| PostgreSQL 16 | PostgreSQL 16 en `infra`, sin tablas iniciales |
+| RNF-1 | Búsqueda menor de 300 ms con 5 000 libros; carga con tool |
+| RNF-2 | Dos préstamos del último ejemplar: uno gana, otro recibe 409 |
+| RNF-3 | Contraseñas sin transmisión/almacenamiento en claro ni logs |
+| RNF-4 | Cuerpo de error único según api-contract |
+| RNF-5 | Arranque con un comando, motor inicialmente vacío y README de infra |
 
-## Commits sugeridos
+## Organización y SOLID según constitution
 
-- `Document branch organization strategy`
-- `Add health check Laravel skeleton`
-- `Add empty PostgreSQL infrastructure`
-- `Document HU-01 frontend scope`
-- `Document HU-01 public page scope`
-- `Document HU-01 tool scope`
+- I: dominio puro, solo biblioteca base/estándar; sin framework ni ORM.
+- II: aplicación conoce dominio y define puertos; adaptadores los implementan; firmas sin tipos de framework.
+- III: composición única en `src/Library.Bootstrap/Composition/PortBindings.cs` o `src/library/bootstrap/composition/port_bindings.py`.
+- IV/SRP: un servicio por caso de uso. OCP: cambiar disco por S3 mediante adaptador. LSP: fakes sustituibles con iguales expectativas. ISP: puertos pequeños. DIP: puertos definidos por quien los consume.
+- V: esquema, restricciones y semilla pertenecen a migraciones; infra solo motor vacío.
+- VI–VIII: imponer invariantes posibles en la base, marcar pendientes, calcular estados/retrasos, preservar valores congelados.
+- IX–XI: secretos desde entorno, .env ignorado; código/columnas/rutas en inglés y documentación/mensajes en español.
+- XII: tarea terminada solo con evidencia ejecutable. Arquitectura verificada con NetArchTest en .NET o import-linter y tests de arquitectura en Python.
+
+No añadir multas, pagos, reservas, renovaciones, correo/SMS, importación masiva ni atributos de libro fuera del spec.
+
+## Estado
+
+Infra contiene PostgreSQL vacío. API tiene un esqueleto Laravel fuera de los planes; app, page y tool tienen documentación inicial. HU-01 y T-20 siguen pendientes. Antes de implementar cada cambio, contrastar CA, RNF, artículos y evidencias; seguir el orden del plan y dependencias de tasks.
